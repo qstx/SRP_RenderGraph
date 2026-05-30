@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using LiteRP.FrameData;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
@@ -8,7 +9,7 @@ namespace LiteRP
 {
     public class LiteRenderPipeline : RenderPipeline
     {
-        private readonly static ShaderTagId s_ShaderTagId = new ShaderTagId("SRPDefaultUnlit");
+        private static readonly ShaderTagId s_ShaderTagId = new ShaderTagId("SRPDefaultUnlit");
         
         private RenderGraph m_RenderGraph = null;
         private LiteRenderGraphRecorder m_LiteRenderGraphRecorder = null;
@@ -60,11 +61,6 @@ namespace LiteRP
             if(!PrepareFrameData(context, camera))
                 return;
             
-            ScriptableCullingParameters cullingParameters = new ScriptableCullingParameters();
-            if(!camera.TryGetCullingParameters(out cullingParameters))
-                return;
-            CullingResults cullingResults = context.Cull(ref cullingParameters);
-            
             CommandBuffer cmd = CommandBufferPool.Get(camera.name);
             context.SetupCameraProperties(camera);
             
@@ -107,6 +103,15 @@ namespace LiteRP
 
         private bool PrepareFrameData(ScriptableRenderContext context, Camera camera)
         {
+            ScriptableCullingParameters cullingParameters;
+            if(!camera.TryGetCullingParameters(out cullingParameters))
+                return false;
+            CullingResults cullingResults = context.Cull(ref cullingParameters);
+            
+            CameraData cameraData = m_ContextContainer.GetOrCreate<CameraData>();
+            cameraData.camera = camera;
+            cameraData.cullingResults = cullingResults;
+            
             return true;
         }
 

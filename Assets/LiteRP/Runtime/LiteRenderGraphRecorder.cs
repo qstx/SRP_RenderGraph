@@ -8,7 +8,7 @@ namespace LiteRP
     {
         public void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            
+            AddDrawObjectsPass(renderGraph, frameData);
         }
     }
 }
