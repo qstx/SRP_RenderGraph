@@ -24,6 +24,7 @@ namespace LiteRP
                 if(m_BackbufferColorHandle.IsValid())
                     builder.SetRenderAttachment(m_BackbufferColorHandle,0,AccessFlags.Write);
                 
+                builder.AllowPassCulling(false);
                 builder.SetRenderFunc((DrawSkyboxPassData data, RasterGraphContext context) =>
                 {
                     context.cmd.DrawRendererList(data.skyboxRendererListHandle);

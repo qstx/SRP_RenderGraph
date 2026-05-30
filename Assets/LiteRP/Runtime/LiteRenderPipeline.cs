@@ -30,6 +30,7 @@ namespace LiteRP
         {
             RTHandles.Initialize(Screen.width, Screen.height);
             m_RenderGraph = new RenderGraph("LiteRPRenderGraph");
+            m_RenderGraph.nativeRenderPassesEnabled = LiteRPUtils.CanNativeRenderPassesEnabled();
             m_LiteRenderGraphRecorder = new LiteRenderGraphRecorder();
             m_ContextContainer = new ContextContainer();
         }

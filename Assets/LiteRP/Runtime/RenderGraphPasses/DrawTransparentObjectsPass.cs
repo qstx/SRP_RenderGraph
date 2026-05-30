@@ -8,24 +8,16 @@ namespace LiteRP
 {
     public partial class LiteRenderGraphRecorder
     {
-        private static readonly ProfilingSampler s_DrawObjectsProfilingSampler=new ProfilingSampler("Draw Objects");
-        private static readonly ShaderTagId s_ShaderTagId = new ShaderTagId("SRPDefaultUnlit");
-        internal class DrawObjectsPassData
+        private static readonly ProfilingSampler s_DrawTransparentObjectsProfilingSampler=new ProfilingSampler("Draw Transparent Objects");
+        internal class DrawTransparentObjectsPassData
         {
-            internal RendererListHandle opaqueRendererListHandle;
             internal RendererListHandle transparentRendererListHandle;
         }
 
-        private void AddDrawObjectsPass(RenderGraph renderGraph, CameraData cameraData)
+        private void AddDrawTransparentObjectsPass(RenderGraph renderGraph, CameraData cameraData)
         {
-            using (var builder = renderGraph.AddRasterRenderPass<DrawObjectsPassData>("Draw Objects Pass", out var passData, s_DrawObjectsProfilingSampler))
+            using (var builder = renderGraph.AddRasterRenderPass<DrawTransparentObjectsPassData>("Draw Transparent Objects Pass", out var passData, s_DrawTransparentObjectsProfilingSampler))
             {
-                RendererListDesc opaqueRendererDesc = new RendererListDesc(s_ShaderTagId,cameraData.cullingResults,cameraData.camera);
-                opaqueRendererDesc.sortingCriteria = SortingCriteria.CommonOpaque;
-                opaqueRendererDesc.renderQueueRange = RenderQueueRange.opaque;
-                passData.opaqueRendererListHandle=renderGraph.CreateRendererList(opaqueRendererDesc);
-                builder.UseRendererList(passData.opaqueRendererListHandle);
-                
                 RendererListDesc transparentRendererDesc = new RendererListDesc(s_ShaderTagId,cameraData.cullingResults,cameraData.camera);
                 transparentRendererDesc.sortingCriteria = SortingCriteria.CommonTransparent;
                 transparentRendererDesc.renderQueueRange = RenderQueueRange.transparent;
@@ -37,9 +29,8 @@ namespace LiteRP
                 
                 builder.AllowPassCulling(false);
                 
-                builder.SetRenderFunc((DrawObjectsPassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc((DrawTransparentObjectsPassData data, RasterGraphContext context) =>
                 {
-                    context.cmd.DrawRendererList(data.opaqueRendererListHandle);
                     context.cmd.DrawRendererList(data.transparentRendererListHandle);
                 });
             }
