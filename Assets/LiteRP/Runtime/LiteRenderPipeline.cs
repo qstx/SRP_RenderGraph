@@ -94,10 +94,11 @@ namespace LiteRP
         {
             RenderGraphParameters renderGraphParameters = new RenderGraphParameters()
             {
-                executionName = camera.name,
+                executionId = camera.GetEntityId(),
                 commandBuffer = cmd,
                 scriptableRenderContext = context,
                 currentFrameIndex = Time.frameCount,
+                generateDebugData = camera.cameraType != CameraType.Preview && !camera.isProcessingRenderRequest,
             };
             m_RenderGraph.BeginRecording(renderGraphParameters);
             
