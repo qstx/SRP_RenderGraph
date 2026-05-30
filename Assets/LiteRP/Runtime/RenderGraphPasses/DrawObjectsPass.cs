@@ -32,14 +32,15 @@ namespace LiteRP
                 passData.transparentRendererListHandle=renderGraph.CreateRendererList(transparentRendererDesc);
                 builder.UseRendererList(passData.transparentRendererListHandle);
 
-                builder.SetRenderAttachment(m_BackbufferColorHandle,0,AccessFlags.Write);
+                if(m_BackbufferColorHandle.IsValid())
+                    builder.SetRenderAttachment(m_BackbufferColorHandle,0,AccessFlags.Write);
                 
                 builder.AllowPassCulling(false);
                 
-                builder.SetRenderFunc((DrawObjectsPassData passData, RasterGraphContext context) =>
+                builder.SetRenderFunc((DrawObjectsPassData data, RasterGraphContext context) =>
                 {
-                    context.cmd.DrawRendererList(passData.opaqueRendererListHandle);
-                    context.cmd.DrawRendererList(passData.transparentRendererListHandle);
+                    context.cmd.DrawRendererList(data.opaqueRendererListHandle);
+                    context.cmd.DrawRendererList(data.transparentRendererListHandle);
                 });
             }
         }

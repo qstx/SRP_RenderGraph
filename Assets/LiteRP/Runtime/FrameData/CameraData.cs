@@ -13,5 +13,22 @@ namespace LiteRP.FrameData
             camera = null;
             cullingResults=default;
         }
+
+        public RTClearFlags GetClearFlag()
+        {
+            CameraClearFlags clearFlags = camera.clearFlags;
+            
+            if (clearFlags == CameraClearFlags.Depth)
+                return RTClearFlags.DepthStencil;
+            else if (clearFlags == CameraClearFlags.Nothing)
+                return RTClearFlags.None;
+            
+            return RTClearFlags.All;
+        }
+
+        public Color GetClearColor()
+        {
+            return CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor);
+        }
     }
 }
