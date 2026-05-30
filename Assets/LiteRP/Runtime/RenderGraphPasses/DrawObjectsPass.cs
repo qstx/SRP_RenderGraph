@@ -12,14 +12,12 @@ namespace LiteRP
         private static readonly ShaderTagId s_ShaderTagId = new ShaderTagId("SRPDefaultUnlit");
         internal class DrawObjectsPassData
         {
-            internal TextureHandle backbufferHandle;
             internal RendererListHandle opaqueRendererListHandle;
             internal RendererListHandle transparentRendererListHandle;
         }
 
-        private void AddDrawObjectsPass(RenderGraph renderGraph, ContextContainer frameData)
+        private void AddDrawObjectsPass(RenderGraph renderGraph, CameraData cameraData)
         {
-            CameraData cameraData = frameData.Get<CameraData>();
             using (var builder = renderGraph.AddRasterRenderPass<DrawObjectsPassData>("Draw Objects Pass", out var passData, s_DrawObjectsProfilingSampler))
             {
                 RendererListDesc opaqueRendererDesc = new RendererListDesc(s_ShaderTagId,cameraData.cullingResults,cameraData.camera);
@@ -34,8 +32,7 @@ namespace LiteRP
                 passData.transparentRendererListHandle=renderGraph.CreateRendererList(transparentRendererDesc);
                 builder.UseRendererList(passData.transparentRendererListHandle);
 
-                passData.backbufferHandle = renderGraph.ImportBackbuffer(BuiltinRenderTextureType.CurrentActive);
-                builder.SetRenderAttachment(passData.backbufferHandle,0,AccessFlags.Write);
+                builder.SetRenderAttachment(m_BackbufferColorHandle,0,AccessFlags.Write);
                 
                 builder.AllowPassCulling(false);
                 
@@ -47,5 +44,4 @@ namespace LiteRP
             }
         }
     }
-    
 }

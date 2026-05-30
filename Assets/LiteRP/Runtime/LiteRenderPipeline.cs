@@ -28,6 +28,7 @@ namespace LiteRP
 
         private void InitializeRenderGraph()
         {
+            RTHandles.Initialize(Screen.width, Screen.height);
             m_RenderGraph = new RenderGraph("LiteRPRenderGraph");
             m_LiteRenderGraphRecorder = new LiteRenderGraphRecorder();
             m_ContextContainer = new ContextContainer();
@@ -37,6 +38,7 @@ namespace LiteRP
         {
             m_ContextContainer?.Dispose();
             m_ContextContainer = null;
+            m_LiteRenderGraphRecorder?.Dispose();
             m_LiteRenderGraphRecorder = null;
             m_RenderGraph?.Cleanup();
             m_RenderGraph = null;
@@ -62,33 +64,6 @@ namespace LiteRP
                 return;
             
             CommandBuffer cmd = CommandBufferPool.Get(camera.name);
-            context.SetupCameraProperties(camera);
-            
-            /*
-            bool clearSkybox = camera.clearFlags == CameraClearFlags.Skybox;
-            bool clearDepth = camera.depth == 0;
-            bool clearColor=camera.clearFlags == CameraClearFlags.Color;
-            cmd.ClearRenderTarget(true,true, CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor));
-
-            if (clearSkybox)
-            {
-                var skyboxRenderer = context.CreateSkyboxRendererList(camera);
-                cmd.DrawRendererList(skyboxRenderer);
-            }
-            
-            var sortingSettings = new SortingSettings(camera);
-            var drawSettings = new DrawingSettings(s_ShaderTagId,sortingSettings);
-            var filteringSettings = new FilteringSettings(RenderQueueRange.opaque);
-            var rendererListParams = new RendererListParams(cullingResults, drawSettings, filteringSettings);
-            var rendererList = context.CreateRendererList(ref rendererListParams); 
-            cmd.DrawRendererList(rendererList);
-
-            sortingSettings.criteria = SortingCriteria.CommonTransparent;
-            filteringSettings = new FilteringSettings(RenderQueueRange.transparent);
-            rendererListParams = new RendererListParams(cullingResults, drawSettings, filteringSettings);
-            rendererList = context.CreateRendererList(ref rendererListParams); 
-            cmd.DrawRendererList(rendererList);
-            */
             
             RecordAndExecuteRenderGraph(context, camera, cmd);
             
