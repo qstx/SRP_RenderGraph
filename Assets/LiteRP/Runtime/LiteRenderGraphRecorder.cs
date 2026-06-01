@@ -12,6 +12,8 @@ namespace LiteRP
         private static readonly ShaderTagId s_ShaderTagId = new ShaderTagId("SRPDefaultUnlit");
         private TextureHandle m_BackbufferColorHandle = TextureHandle.nullHandle;
         private RTHandle m_TargetColorHandle = null;
+        private TextureHandle m_BackbufferDepthHandle = TextureHandle.nullHandle;
+        private RTHandle m_TargetDepthHandle = null;
         public void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
             CameraData cameraData = frameData.Get<CameraData>();
@@ -24,7 +26,7 @@ namespace LiteRP
             
             AddDrawOpaqueObjectsPass(renderGraph, cameraData);
             
-            if(cameraData.camera.clearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null)
+            if(clearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null)
                 AddDrawSkyboxPass(renderGraph, cameraData);
             
             AddDrawTransparentObjectsPass(renderGraph, cameraData);
@@ -34,33 +36,58 @@ namespace LiteRP
         {
             RenderTargetIdentifier targetColorId = BuiltinRenderTextureType.CameraTarget;
             if (m_TargetColorHandle == null)
-            {
                 m_TargetColorHandle = RTHandles.Alloc(targetColorId, "Backbuffer Color");
-            }
+            //else if(m_TargetColorHandle.nameID != targetColorId)
+            //    RTHandleStaticHelpers.SetRTHandleUserManagedWrapper(ref m_TargetColorHandle, targetColorId);
             
-            Color cameraBackgroundColor = CoreUtils.ConvertSRGBToActiveColorSpace(cameraData.camera.backgroundColor);
+            RenderTargetIdentifier targetDepthId = BuiltinRenderTextureType.Depth;
+            if (m_TargetDepthHandle == null)
+                m_TargetDepthHandle = RTHandles.Alloc(targetDepthId, "Backbuffer Depth");
+            else if(m_TargetDepthHandle.nameID != targetDepthId)
+                RTHandleStaticHelpers.SetRTHandleUserManagedWrapper(ref m_TargetDepthHandle, targetDepthId);
 
-            ImportResourceParams importBackbufferColorParams = new ImportResourceParams();
+            Color clearColor = cameraData.GetClearColor();
+            RTClearFlags clearFlags = cameraData.GetClearFlags();
+
             bool clearOnFirstUse = !renderGraph.nativeRenderPassesEnabled;
             bool discardOnLastUse = !renderGraph.nativeRenderPassesEnabled;
+            ImportResourceParams importBackbufferColorParams = new ImportResourceParams();
             importBackbufferColorParams.clearOnFirstUse = clearOnFirstUse;
-            importBackbufferColorParams.clearColor = cameraBackgroundColor;
+            importBackbufferColorParams.clearColor = clearColor;
             importBackbufferColorParams.discardOnLastUse = discardOnLastUse;
+            
+            ImportResourceParams importBackbufferDepthParams = new ImportResourceParams();
+            importBackbufferDepthParams.clearOnFirstUse = clearOnFirstUse;
+            importBackbufferDepthParams.clearColor = clearColor;
+            importBackbufferDepthParams.discardOnLastUse = discardOnLastUse;
+#if UNITY_EDITOR
+            // on TBDR GPUs like Apple M1/M2, we need to preserve the backbuffer depth for overlay cameras in Editor for Gizmos
+            if (cameraData.camera.cameraType == CameraType.SceneView)
+                importBackbufferDepthParams.discardOnLastUse = false;
+#endif
             
             bool colorRT_sRGB = (QualitySettings.activeColorSpace == ColorSpace.Linear);
             RenderTargetInfo importInfoColor = new RenderTargetInfo();
+            RenderTargetInfo importInfoDepth = new RenderTargetInfo();
+            
             importInfoColor.width=Screen.width;
             importInfoColor.height=Screen.height;
             importInfoColor.volumeDepth = 1;
             importInfoColor.msaaSamples = 1;
             importInfoColor.format = GraphicsFormatUtility.GetGraphicsFormat(RenderTextureFormat.Default, colorRT_sRGB);
+            importInfoColor.bindMS = false;
+
+            importInfoDepth = importInfoColor;
+            importInfoDepth.format = SystemInfo.GetGraphicsFormat(DefaultFormat.DepthStencil);
             
             m_BackbufferColorHandle = renderGraph.ImportTexture(m_TargetColorHandle, importInfoColor, importBackbufferColorParams);
+            m_BackbufferDepthHandle = renderGraph.ImportTexture(m_TargetDepthHandle, importInfoDepth, importBackbufferDepthParams);
         }
 
         public void Dispose()
         {
             RTHandles.Release(m_TargetColorHandle);
+            RTHandles.Release(m_TargetDepthHandle);
             GC.SuppressFinalize(this);
         }
     }

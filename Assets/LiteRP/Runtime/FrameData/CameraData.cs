@@ -14,7 +14,7 @@ namespace LiteRP.FrameData
             cullingResults=default;
         }
 
-        public RTClearFlags GetClearFlag()
+        public RTClearFlags GetClearFlags()
         {
             CameraClearFlags clearFlags = camera.clearFlags;
             

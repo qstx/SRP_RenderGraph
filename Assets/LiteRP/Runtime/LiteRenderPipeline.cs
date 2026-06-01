@@ -79,8 +79,7 @@ namespace LiteRP
 
         private bool PrepareFrameData(ScriptableRenderContext context, Camera camera)
         {
-            ScriptableCullingParameters cullingParameters;
-            if(!camera.TryGetCullingParameters(out cullingParameters))
+            if(!camera.TryGetCullingParameters(out var cullingParameters))
                 return false;
             CullingResults cullingResults = context.Cull(ref cullingParameters);
             

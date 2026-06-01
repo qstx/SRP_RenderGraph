@@ -11,7 +11,7 @@ namespace LiteRP
         
         internal class ClearRenderTargetPassData
         {
-            internal RTClearFlags clearFlag;
+            internal RTClearFlags clearFlags;
             internal Color clearColor;
         }
 
@@ -19,14 +19,16 @@ namespace LiteRP
         {
             using (var builder = renderGraph.AddRasterRenderPass<ClearRenderTargetPassData>("Clear Render Target", out var passData, s_ClearRenderTargetProfilingSampler))
             {
-                passData.clearFlag = cameraData.GetClearFlag();
+                passData.clearFlags = cameraData.GetClearFlags();
                 passData.clearColor = cameraData.GetClearColor();
                 if(m_BackbufferColorHandle.IsValid())
                     builder.SetRenderAttachment(m_BackbufferColorHandle, 0, AccessFlags.Write);
+                if(m_BackbufferDepthHandle.IsValid())
+                    builder.SetRenderAttachmentDepth(m_BackbufferDepthHandle, AccessFlags.Write);
                 builder.AllowPassCulling(false);
                 builder.SetRenderFunc((ClearRenderTargetPassData data, RasterGraphContext context) =>
                 {
-                    context.cmd.ClearRenderTarget(data.clearFlag, data.clearColor,1,0);
+                    context.cmd.ClearRenderTarget(data.clearFlags, data.clearColor,1,0);
                 });
             }
         }
